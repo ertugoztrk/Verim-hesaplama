@@ -139,6 +139,20 @@
             gap: 12px;
         }
 
+        .reset-button {
+            width: 100%;
+            margin-top: 4px;
+            padding: 11px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background: var(--soft-bg);
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: .95rem;
+            cursor: pointer;
+        }
+        .reset-button:hover { border-color: var(--accent-color); }
+
         .form-group {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -434,6 +448,8 @@
                     </div>
                 </div>
 
+                <button type="button" id="resetInputs" class="reset-button">↻ Diğer Alanları Sıfırla (A ve G Hariç)</button>
+
             </form>
         </div>
 
@@ -669,7 +685,7 @@
         Object.entries(formDefaults).forEach(([id, value]) => { document.getElementById(id).value = parseTrNumber(value); });
         ['B','C','D','x','y','z','t','w','p','q','u','n1','n2','n3'].forEach(id => {
             const input = document.getElementById(id);
-            if (input) input.value = '';
+            if (input) input.value = '0';
         });
         productSearch.value = p.code;
         const typeNames = {film:'Kaplı Tablet (Film Kaplama)', capsule:'Kapsül', core:'Çekirdek Tablet', powder:'Toz / Granül İmalat'};
@@ -681,8 +697,8 @@
     productSearch.addEventListener('input', () => {
         // Yeni bir arama mevcut ürün seçimini geçersiz kılar; A/G alanları da eski ürün gibi görünmesin.
         selectedProductIndex = null;
-        document.getElementById('A').value = '';
-        document.getElementById('G').value = '';
+        document.getElementById('A').value = '0';
+        document.getElementById('G').value = '0';
         productInfo.textContent = 'Arama sonuçlarından doğru ürün/şarj seçeneğini seçin. Seçim, ilgili formu ve giriş alanlarını günceller.';
         renderProductResults();
         calculate();
@@ -730,18 +746,11 @@
     function calculate() {
         const ids = ['A','G','B','C','D','x','y','z','t','w','p','q','u','n1','n2','n3'];
         const v = {};
-        ids.forEach(id => { const el = document.getElementById(id); v[id] = el && el.value.trim() !== '' ? Number(el.value) : NaN; });
+        // Boş veya başlangıç şablonu olan alanlar 0 kabul edilir; girilen aşamaların sonucu bekletilmez.
+        ids.forEach(id => { const el = document.getElementById(id); const raw = el ? el.value.trim() : ''; v[id] = raw === '' ? 0 : (Number(el.value) || 0); });
         const type = selectedFormType || 'film';
-        const required = formFields[type] || formFields.film;
-        const incomplete = required.some(id => !Number.isFinite(v[id]));
-        const resultIds = ['res_manufacturing_yield','res_tablet_press_yield','res_tablet_press_accountability','res_total_core_tablets','res_empty_capsules','res_total_capsules','res_coating_yield','res_coating_accountability','res_total_coated_tablets','res_overall_solid_manufacturing_yield','res_overall_solid_manufacturing_accountability'];
-        if (incomplete) {
-            resultIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '-'; });
-            Object.keys(resultMetricMap).forEach(id => { const el = document.getElementById('limit_' + id); if (el) {el.className='result-meta no-limit'; el.textContent='Girişler tamamlandığında kontrol edilir';} });
-            return;
-        }
         const vals = {};
-        const safeDiv = (a,b) => b !== 0 ? a/b : NaN;
+        const safeDiv = (a,b) => b !== 0 ? a/b : 0;
         vals.res_manufacturing_yield = safeDiv(v.B + v.n1, v.A) * 100;
         if (type === 'film' || type === 'core') {
             vals.res_tablet_press_yield = safeDiv(v.C + v.y + v.n2, v.B) * 100;
@@ -778,7 +787,25 @@
         });
     }
 
+    // 0, başlangıç şablonudur: alana girildiğinde temizlenir; boş bırakılırsa tekrar 0 olur.
+    document.querySelectorAll('#yieldForm input[type=number]').forEach(input => {
+        if (input.value.trim() === '') input.value = '0';
+        input.addEventListener('focus', () => {
+            if (input.value.trim() === '0') input.value = '';
+        });
+        input.addEventListener('blur', () => {
+            if (input.value.trim() === '') input.value = '0';
+            calculate();
+        });
+    });
     document.getElementById('yieldForm').addEventListener('input', calculate);
+    document.getElementById('resetInputs').addEventListener('click', () => {
+        ['B','C','D','x','y','z','t','w','p','q','u','n1','n2','n3'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) input.value = '0';
+        });
+        calculate();
+    });
     window.addEventListener('DOMContentLoaded', calculate);
     calculate();
 </script>
