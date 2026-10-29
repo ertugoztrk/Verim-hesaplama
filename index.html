@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solid İmalat Verim Hesaplama</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --primary-color: #f4f8fc;
+            --accent-color: #087fbd;
+            --bg-color: #f3f6fb;
+            --card-bg: #ffffff;
+            --text-color: #263448;
+            --border-color: #d8e0ea;
+            --field-bg: #ffffff;
+            --row-bg: #f6f8fb;
+            --muted-color: #63748b;
+            --soft-bg: #edf5fb;
+        }
+        body[data-theme="dark"] {
+            color-scheme: dark;
+            --primary-color: #111b2d;
+            --accent-color: #38bdf8;
+            --bg-color: #1b2638;
+            --card-bg: #131d2e;
+            --text-color: #e8eef8;
+            --border-color: #2b394d;
+            --field-bg: #101a2b;
+            --row-bg: #1e2a3d;
+            --muted-color: #9fb0c8;
+            --soft-bg: #18283b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            transition: background-color .2s ease, color .2s ease;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            position:relative;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0 0 10px 0;
+            font-size: 1.8rem;
+        }
+
+        header p {
+            margin: 0;
+            color: var(--muted-color);
+            font-size: 0.95rem;
+        }
+        .header-row { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
+        .theme-toggle { flex-shrink:0; border:1px solid var(--border-color); background:var(--field-bg); color:var(--text-color); border-radius:10px; padding:10px 14px; font-weight:700; cursor:pointer; }
+        .theme-toggle:hover { border-color:var(--accent-color); }
+        header h1 { color:var(--accent-color); }
+        footer { text-align:center; padding:0; margin-top:28px; }
+        .signature {
+            display:block;
+            width:100%;
+            box-sizing:border-box;
+            margin:0;
+            padding:14px 12px;
+            border:0;
+            border-radius:0;
+            background:transparent;
+            text-align:center;
+        }
+        .signature-label, .signature-caption { display:none; }
+        .signature-name {
+            display:block;
+            color:var(--muted-color);
+            font-family:"Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            font-size:13px;
+            font-style:normal;
+            font-weight:400;
+            line-height:1.5;
+            letter-spacing:normal;
+        }
+
+        .alert-info {
+            background-color: var(--soft-bg);
+            border-left: 4px solid var(--accent-color);
+            padding: 10px 15px;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: var(--text-color);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 8px;
+            color: var(--text-color);
+            font-size: 1.3rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .form-group {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            text-align: right;
+            background:var(--field-bg);
+            color:var(--text-color);
+        }
+
+        .input-wrapper input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .unit {
+            margin-left: 8px;
+            font-size: 0.85rem;
+            color: var(--muted-color);
+            min-width: 25px;
+        }
+
+        .results-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background-color: var(--row-bg);
+            border-radius: 4px;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .result-item.highlight {
+            background-color: var(--soft-bg);
+            border-left-color: #27ae60;
+            font-weight: bold;
+        }
+
+        .result-label {
+            font-size: 0.9rem;
+        }
+
+        .result-value {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        .product-selector { display:grid; grid-template-columns:1fr; gap:12px; margin-bottom:16px; padding:14px; background:var(--row-bg); border:1px solid var(--border-color); border-radius:8px; }
+        .product-selector label { font-size:.9rem; font-weight:600; }
+        .product-selector input { width:100%; box-sizing:border-box; padding:11px 12px; border:1px solid var(--border-color); border-radius:5px; background:var(--field-bg); color:var(--text-color); font-size:1rem; }
+        .product-selector input:focus { outline:none; border-color:var(--accent-color); box-shadow:0 0 0 2px rgba(52,152,219,.18); }
+        .product-results { display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto; }
+        .product-result { width:100%; text-align:left; padding:10px 12px; border:1px solid #dce5ec; border-radius:5px; background:var(--row-bg); color:var(--text-color); cursor:pointer; font-size:.9rem; line-height:1.4; }
+        .product-result:hover, .product-result:focus { border-color:var(--accent-color); background:var(--soft-bg); outline:none; }
+        .product-result.selected { border-color:#27804a; background:var(--soft-bg); }
+        .product-result strong { color:var(--accent-color); font-size:1rem; }
+        .product-empty { padding:10px 12px; color:var(--muted-color); background:var(--field-bg); border:1px dashed var(--border-color); border-radius:5px; font-size:.88rem; }
+        .product-note { font-size:.82rem; color:var(--muted-color); line-height:1.45; }
+        .result-value-wrap { display:flex; flex-direction:column; align-items:flex-end; gap:4px; text-align:right; }
+        .result-meta { font-size:.76rem; font-weight:500; color:var(--muted-color); }
+        .result-meta.in-range { color:#187344; }
+        .result-meta.out-range { color:#b42318; font-weight:700; }
+        .result-meta.no-limit { color:var(--muted-color); }
+        .input-wrapper input { min-width:0; box-sizing:border-box; }
+        @media (max-width:520px) {
+            body { padding:8px; }
+            .container { width:100%; }
+            header { padding:15px 13px; margin-bottom:12px; }
+            .header-row { align-items:flex-start; gap:10px; }
+            header h1 { font-size:1.28rem; line-height:1.25; }
+            header p { font-size:.82rem; line-height:1.4; }
+            .theme-toggle { padding:8px 9px; font-size:.78rem; white-space:nowrap; }
+            .layout { gap:12px; }
+            .card { padding:13px; border-radius:10px; }
+            .card h2 { font-size:1.1rem; }
+            .form-group { grid-template-columns:minmax(0, 1.25fr) minmax(105px, 1fr); gap:7px; }
+            .form-group label { font-size:.8rem; line-height:1.3; }
+            .input-wrapper { min-width:0; }
+            .input-wrapper input { min-width:0; padding:9px 6px; font-size:16px; }
+            .unit { margin-left:5px; min-width:auto; font-size:.75rem; }
+            .product-search-row { display:flex; flex-direction:column; }
+            .product-search-row input, .product-search-row select { width:100%; min-width:0; }
+            .product-results { max-height:230px; }
+            .product-result { padding:11px 10px; }
+            .result-item { gap:8px; padding:10px; }
+            .result-label { font-size:.8rem; }
+            .result-value { font-size:.9rem; }
+            .result-value-wrap { max-width:55%; }
+            footer { padding-top:20px; }
+            .signature { min-width:0; width:90%; box-sizing:border-box; }
+        }
+        @media (max-width:360px) {
+            .header-row { flex-direction:column; }
+            .theme-toggle { align-self:flex-start; }
+            .form-group { grid-template-columns:1fr; gap:4px; }
+            .input-wrapper { max-width:100%; }
+        }
+
+        /* Contrast fixes for section/table headings and both themes */
+        .card h2, .form-group label, .result-label { color: var(--text-color); }
+        .result-value { color: var(--accent-color); }
+        .product-result { border-color: var(--border-color); }
+        .product-result strong { color: var(--accent-color); }
+        body[data-theme="dark"] .result-meta.in-range { color: #86efac; }
+        body[data-theme="dark"] .result-meta.out-range { color: #fca5a5; }
+        footer { padding:0; }
+        .signature { min-width:0; }
+        @media (max-width:520px) {
+            .signature { padding:12px 8px; }
+            .signature-name { font-size:12px; }
+        }
+
+    </style>
+</head>
+<body data-theme="light">
+
+<div class="container">
+    <header>
+        <div class="header-row">
+            <div>
+                <h1>Solid İmalat Verim Sistemi</h1>
+                <p>Doğrulanmış ürün veritabanı ve kapsül / tablet / film kaplı / bulk ayrımı</p>
+            </div>
+            <button type="button" id="themeToggle" class="theme-toggle" aria-label="Tema değiştir">🌙 Koyu Tema</button>
+        </div>
+    </header>
+
+    <div class="layout">
+        <!-- Giriş Parametreleri -->
+        <div class="card">
+            <h2>Giriş Parametreleri</h2>
+            <div class="product-selector">
+                <label for="productSearch">Ürün Ara (Kod):</label>
+                <input id="productSearch" type="text" inputmode="numeric" autocomplete="off" placeholder="Örn. 432 yazın; kod eşleşmeleri aşağıda listelensin">
+                <div id="productResults" class="product-results" role="listbox" aria-label="Ürün kodu arama sonuçları">
+                    <div class="product-empty">Ürün kodunu yazarak aramaya başlayın.</div>
+                </div>
+                <div id="productInfo" class="product-note">Arama sonuçlarından ürün/şarj seçildiğinde yalnızca A ve G otomatik doldurulur; diğer girişler boş bırakılır. Ürüne ait limitler korunur.</div>
+            </div>
+            <form id="yieldForm" class="form-grid">
+                
+                <div class="form-group">
+                    <label for="A">A - Teorik Granül Miktar</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="A" step="0.1" value="" required>
+                        <span class="unit">kg</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="G">G - Hedeflenen Batch Miktar</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="G" step="0.001" value="" required>
+                        <span class="unit">kg</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="B">B - İmalat Sonrası Teslimat</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="B" step="0.1" value="" required>
+                        <span class="unit">kg</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="C">C - Tablet Baskı Teslimat</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="C" step="0.1" value="" required>
+                        <span class="unit">kg</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="D">D - Kaplama Teslimat</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="D" step="0.1" value="" required>
+                        <span class="unit">kg</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="x">x - Tablet İmha</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="x" step="0.001" value="" required>
+                        <span class="unit">kg</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="y">y - Tablet Numune</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="y" step="0.001" value="" required>
+                        <span class="unit">kg</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="z">z - Dolum Sonrası Bakiye Granül</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="z" step="0.001" value="" required>
+                        <span class="unit">kg</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="t">t - Kaplı Tablet İmha</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="t" step="0.001" value="" required>
+                        <span class="unit">kg</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="w">w - Kaplı Tablet Numune</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="w" step="0.001" value="" required>
+                        <span class="unit">kg</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="p">p - Çekirdek Tablet Ort. Ağırlık</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="p" step="1" value="" required>
+                        <span class="unit">mg</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="q">q - Kaplı Tablet Ort. Ağırlık</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="q" step="1" value="" required>
+                        <span class="unit">mg</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="n1">n1 - İmalat Aşaması IPK Numune</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="n1" step="0.001" value="" required>
+                        <span class="unit">kg</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="n2">n2 - Tablet Baskı Aşaması IPK Numune</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="n2" step="0.001" value="" required>
+                        <span class="unit">kg</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="n3">n3 - Film Kaplama Aşaması IPK Numune</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="n3" step="0.001" value="" required>
+                        <span class="unit">kg</span>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Hesaplama Sonuçları -->
+        <div class="card">
+            <h2>Hesaplama Sonuçları</h2>
+            <div class="results-grid">
+                
+                <div class="result-item">
+                    <span class="result-label">İmalat Verimi</span>
+                    <span class="result-value-wrap"><span class="result-value" id="res_manufacturing_yield">-</span><span class="result-meta no-limit" id="limit_res_manufacturing_yield">Ürün seçilmedi</span></span>
+                </div>
+
+                <div class="result-item">
+                    <span class="result-label">Tablet Baskı Verimi</span>
+                    <span class="result-value-wrap"><span class="result-value" id="res_tablet_press_yield">-</span><span class="result-meta no-limit" id="limit_res_tablet_press_yield">Ürün seçilmedi</span></span>
+                </div>
+
+                <div class="result-item">
+                    <span class="result-label">Tablet Baskı Sayılabilirlik</span>
+                    <span class="result-value-wrap"><span class="result-value" id="res_tablet_press_accountability">-</span><span class="result-meta no-limit" id="limit_res_tablet_press_accountability">Ürün seçilmedi</span></span>
+                </div>
+
+                <div class="result-item">
+                    <span class="result-label">Toplam Çekirdek Tablet Adeti</span>
+                    <span class="result-value" id="res_total_core_tablets">-</span>
+                </div>
+
+                <div class="result-item">
+                    <span class="result-label">Kaplama Verimi</span>
+                    <span class="result-value-wrap"><span class="result-value" id="res_coating_yield">-</span><span class="result-meta no-limit" id="limit_res_coating_yield">Ürün seçilmedi</span></span>
+                </div>
+
+                <div class="result-item">
+                    <span class="result-label">Kaplama Sayılabilirlik</span>
+                    <span class="result-value-wrap"><span class="result-value" id="res_coating_accountability">-</span><span class="result-meta no-limit" id="limit_res_coating_accountability">Ürün seçilmedi</span></span>
+                </div>
+
+                <div class="result-item">
+                    <span class="result-label">Toplam Kaplı Tablet Adeti</span>
+                    <span class="result-value" id="res_total_coated_tablets">-</span>
+                </div>
+
+                <div class="result-item highlight">
+                    <span class="result-label">Solid İmalat Genel Verim</span>
+                    <span class="result-value-wrap"><span class="result-value" id="res_overall_solid_manufacturing_yield">-</span><span class="result-meta no-limit" id="limit_res_overall_solid_manufacturing_yield">Ürün seçilmedi</span></span>
+                </div>
+
+                <div class="result-item highlight">
+                    <span class="result-label">Solid İmalat Sayılabilirlik</span>
+                    <span class="result-value-wrap"><span class="result-value" id="res_overall_solid_manufacturing_accountability">-</span><span class="result-meta no-limit" id="limit_res_overall_solid_manufacturing_accountability">Ürün seçilmedi</span></span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<footer>
+    <div class="signature" aria-label="Uygulama hazırlayan bilgisi">
+        <strong class="signature-name">Ertuğrul Öztürk tarafından hazırlanmıştır.</strong>
+    </div>
+</footer>
+
+<script>
+    const productData = [{"code":"13000032","name":"A-FERİN HOT POŞET (bulk)","batch":"480,000","A":"480,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"}}},{"code":"13000050","name":"APROL 275 MG.FİLM TABLET (film kaplı)","batch":"315,000","A":"306,188","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"103,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"98,0","max":"103,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"103,0"},"Kaplama Verimi":{"type":"Verim","min":"99,5","max":"103,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,5","max":"103,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"103,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"103,0"}}},{"code":"13000053","name":"ANTEPSİN 1 G TABLET (tablet)","batch":"950,400","A":"950,400","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13000098","name":"İNAPROL 500 MG.FORT TABLET (tablet)","batch":"420,000","A":"425,190","limits":{"İmalat Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,5","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,5","max":"100,0"}}},{"code":"13000100","name":"KETORAL 200 MG. TABLET (tablet)","batch":"52,000","A":"52,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,5","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13000125","name":"KLİNDAN 150 MG. KAPSÜL (kapsül)","batch":"121,200","A":"103,200","limits":{"Kapsül Dolum Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Kapsül Dolum Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13000251","name":"FLATON ENTERİK KAPLI DRAJE (draje kaplı)","batch":"323,775","A":"183,536","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,5","max":"100,5"},"Kaplama sayılabilirlik":{"type":"Sayılabilirlik","min":"99,5","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,5","max":"100,5"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,5"}}},{"code":"13000272","name":"TERBONİLE 250 MG. TABLET (tablet)","batch":"100,000","A":"100,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"101,0"}}},{"code":"13000278","name":"SEKROL 30 MG. TABLET (tablet)","batch":"80,000","A":"82,240","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"101,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"101,0"}}},{"code":"13000291","name":"ZELOXİM 7,5 MG TABLET (tablet)","batch":"100,000","A":"100,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13000300","name":"ZELOXIM 15 MG. FORT TABLET (tablet)","batch":"200,000","A":"200,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,5","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13000309","name":"CORONİS 6.25 MG. TABLET(tablet)","batch":"84,000","A":"84,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"101,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"96,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"100,5"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,5"}}},{"code":"13000312","name":"CORONİS 12.5 MG. TABLET(tablet) 140,000 kg","batch":"140,000","A":"140,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13000312","name":"CORONİS 12.5 MG. TABLET(tablet) 70,000 kg","batch":"70,000","A":"70,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13000315","name":"CORONİS 25 MG. TABLET(tablet)","batch":"84,000","A":"84,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"}}},{"code":"13000372","name":"GLİFOR 850 MG. FİLM TABLET (film kaplı)","batch":"541,875","A":"532,408","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,5","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,5","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"100,5"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,5"}}},{"code":"13000380","name":"SPAZMOTEK PLUS 500MG10MG FK TB(film kp)","batch":"414,000","A":"405,360","limits":{"İmalat Verimi":{"type":"Verim","min":"98,5","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"98,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"98,0","max":"100,5"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,5"}}},{"code":"13000391","name":"ULCOREKS 40MG.ENTERIK TAB(enterik kaplı)","batch":"100,000","A":"90,000","limits":{"İmalat Verimi":{"type":"Verim","min":"98,5","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Kaplama sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"101,0"}}},{"code":"13000398","name":"MUSCOFLEX 4 MG. KAPSÜL (kapsül) 290,000 kg","batch":"290,000","A":"226,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Kapsül Dolum Verimi":{"type":"Verim","min":"96,0","max":"100,0"},"Kapsül Dolum Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"}}},{"code":"13000398","name":"MUSCOFLEX 4 MG. KAPSÜL (kapsül) 580,000 kg","batch":"580,000","A":"452,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Kapsül Dolum Verimi":{"type":"Verim","min":"96,0","max":"100,0"},"Kapsül Dolum Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"}}},{"code":"13000410","name":"GLIFIX 15MG TABLET (tablet) 144,000 kg","batch":"144,000","A":"144,000","limits":{"İmalat Verimi":{"type":"Verim","min":"98,5","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"}}},{"code":"13000410","name":"GLIFIX 15MG TABLET (tablet) 72,000 kg","batch":"72,000","A":"72,000","limits":{"İmalat Verimi":{"type":"Verim","min":"98,5","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"}}},{"code":"13000414","name":"GLIFIX 30MG TABLET (tablet) 144,000 kg","batch":"144,000","A":"144,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,5","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13000414","name":"GLIFIX 30MG TABLET (tablet) 288,000 kg","batch":"288,000","A":"288,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,5","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13000418","name":"GLIFIX 45MG TABLET (tablet) 144,000 kg","batch":"144,000","A":"144,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,5","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13000418","name":"GLIFIX 45MG TABLET (tablet) 72,000 kg","batch":"72,000","A":"72,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,5","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13000425","name":"A-FERİN 300MG2MG10MG KAPSÜL (kapsül)","batch":"675,000","A":"562,500","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Kapsül Dolum Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Kapsül Dolum Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13000432","name":"A-FERIN SINUS 500MG30MG1.25MG F.K.T","batch":"517,920","A":"505,440","limits":{"İmalat Verimi":{"type":"Verim","min":"97,5","max":"101,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Kaplama sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"94,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"94,5","max":"101,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,0"}}},{"code":"13000437","name":"ZESPIRA 10 MG. FILM KAP.TAB.(film kaplı)","batch":"203,000","A":"200,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,5","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,5","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"101,0"}}},{"code":"13000440","name":"KONTİL 250 MG. ÇİĞNEME TABLETİ (tablet)","batch":"318,600","A":"318,600","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13000472","name":"CLARİCİDE 250 MG. FİLM TAB. (film kaplı)","batch":"88,786","A":"83,999","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"98,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,5","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,5","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,5","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,5"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,5"}}},{"code":"13000508","name":"METSIL FORT CIGNEME TABLETI (tablet)","batch":"492,300","A":"492,300","limits":{"İmalat Verimi":{"type":"Verim","min":"97,5","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"98,0","max":"100,5"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,5","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,5","max":"100,0"}}},{"code":"13000516","name":"APRAZOL 30 MG. KAPSÜL (kapsül)","batch":"0,000","A":"0,000","limits":{"Kapsül Dolum Verimi":{"type":"Verim","min":"97,5","max":"103,0"},"Kapsül Dolum Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"103,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"103,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"103,0"}}},{"code":"13000897","name":"MISIR NISASTASI (Kurutulmus)","batch":"200,000","A":"200,000","limits":{"İmalat Verimi":{"type":"Verim","min":"88,0","max":"100,0"}}},{"code":"13000961","name":"ATEROZ 10 MG. FİLM TABLET (film kaplı)","batch":"93,000","A":"90,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"105,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"101,0"}}},{"code":"13000963","name":"ATEROZ 40 MG. FİLM TABLET (film kaplı)","batch":"186,000","A":"180,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,5","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"101,0"}}},{"code":"13000964","name":"ATEROZ 80 MG. FİLM TABLET (film kaplı)","batch":"93,000","A":"90,000","limits":{"İmalat Verimi":{"type":"Verim","min":"96,5","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"96,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,0","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"90,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"90,0","max":"101,0"}}},{"code":"13001929","name":"ATEROZ 20MG F.TB(film kaplı)20MG BASKILI","batch":"186,000","A":"180,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,5","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,5","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,5","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"101,0"}}},{"code":"13001930","name":"ATEROZ 10MG F.TB(film kaplı)10MG BASKILI","batch":"93,000","A":"90,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"101,0"}}},{"code":"13000962","name":"ATEROZ 20 MG. FİLM TABLET (film kaplı) 372,000 kg","batch":"372,000","A":"360,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,5","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"98,5","max":"100,5"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,5","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"101,0"}}},{"code":"13000962","name":"ATEROZ 20 MG. FİLM TABLET (film kaplı) 186,000 kg","batch":"186,000","A":"180,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,5","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,5","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,5","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"101,0"}}},{"code":"13000969","name":"DİLOXOL 75 MG. FİLM TABLET (film kaplı)","batch":"105,840","A":"102,902","limits":{"İmalat Verimi":{"type":"Verim","min":"99,7","max":"100,3"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,7","max":"100,3"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Kaplama sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"99,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"}}},{"code":"13000975","name":"ZESPİRA 4 MG. ÇİĞNEME TABLETİ (tablet)","batch":"60,000","A":"60,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,5","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"99,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,5","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13000977","name":"ZESPİRA 5 MG. ÇİĞNEME TABLETİ (tablet)","batch":"100,000","A":"100,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,5","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13000982","name":"GLİFOR 1000 MG. FİLM TABLET (film kaplı)","batch":"619,763","A":"608,948","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,5","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,5","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"100,5"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,5"}}},{"code":"13000996","name":"ALZANT 10MG FİLM KAP.TABLET (film kaplı)","batch":"187,500","A":"183,750","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"101,0"}}},{"code":"13001069","name":"LOSİRAM 10 MG. FİLM TABLET (film kaplı)","batch":"104,000","A":"100,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"95,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,5","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,5","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"100,5"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,5"}}},{"code":"13001070","name":"LOSİRAM 20 MG. FİLM TABLET (film kaplı)","batch":"145,600","A":"140,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,5","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,5","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"94,0","max":"100,5"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"94,0","max":"100,5"}}},{"code":"13001238","name":"FLOPROST MR 0,4 MG. KAPSÜL (kapsül)","batch":"0,000","A":"0,000","limits":{"Kapsül Dolum Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Kapsül Dolum Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13001252","name":"APROL FORT 550 MG FİLM KAPLI TABLET","batch":"415,000","A":"408,250","limits":{"İmalat Verimi":{"type":"Verim","min":"98,5","max":"101,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"98,5","max":"101,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"99,0","max":"100,5"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13001254","name":"FORTİNE 100 MG. FİLM TABLET(çekirdek)","batch":"400,000","A":"400,000","limits":{"İmalat Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"}}},{"code":"13001255","name":"FORTINE 100MG FILM KAP. TB CENT(film kp) 205,000 kg","batch":"205,000","A":"200,000","limits":{"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"100,5"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,5"}}},{"code":"13001255","name":"FORTINE 100MG FILM KAP. TB CENT(film kp) 246,000 kg","batch":"246,000","A":"240,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"96,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Kaplama sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"94,0","max":"100,5"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"94,0","max":"100,5"}}},{"code":"13001266","name":"TILAC 400MG FILM KAPLI TABLET(FILM TABLE","batch":"160,650","A":"155,400","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Kaplama sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"93,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"94,0","max":"100,0"}}},{"code":"13001268","name":"MUSCOFLEX 8 MG. KAPSÜL (kapsül) 145,000 kg","batch":"145,000","A":"113,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Kapsül Dolum Verimi":{"type":"Verim","min":"95,5","max":"100,0"},"Kapsül Dolum Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"}}},{"code":"13001268","name":"MUSCOFLEX 8 MG. KAPSÜL (kapsül) 580,000 kg","batch":"580,000","A":"452,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Kapsül Dolum Verimi":{"type":"Verim","min":"95,5","max":"100,0"},"Kapsül Dolum Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"}}},{"code":"13001291","name":"CLARICIDE 500 MG FILM TB. (film tablet)","batch":"412,384","A":"392,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"98,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,5","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"94,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"94,0","max":"100,0"}}},{"code":"13001308","name":"MIKROKRISTALIN SELULOZ-SIMULSOL KARIŞIM","batch":"200,000","A":"200,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"}}},{"code":"13001354","name":"ROSUVAS 10MG FILM TABLET (FILM KAPLI)","batch":"87,360","A":"84,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,5","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,5","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"101,0"}}},{"code":"13001355","name":"ROSUVAS 20MG FILM TABLET (FILM KAPLI)","batch":"87,360","A":"84,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,5","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,5","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"101,0"}}},{"code":"13001356","name":"ROSUVAS 40MG FILM TABLET (FILM KAPLI)","batch":"87,360","A":"84,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,5","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,5","max":"100,5"},"Kaplama sayılabilirlik":{"type":"Sayılabilirlik","min":"99,5","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"101,0"}}},{"code":"13001398","name":"TORK 20MG FILM TABLET","batch":"86,880","A":"84,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13001469","name":"TILAC SR 600MG UZAT.SALNM FL KAPLI TB","batch":"162,001","A":"157,500","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"93,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"93,0","max":"100,0"}}},{"code":"13001470","name":"OLMYSAR 10MG FILM TABLET","batch":"0,000","A":"0,000","limits":{"Tablet Baskı Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"}}},{"code":"13001471","name":"OLMYSAR 20MG FILM TABLET 122,080 kg","batch":"122,080","A":"117,600","limits":{"Tablet Baskı Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"94,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"94,0","max":"100,0"}}},{"code":"13001472","name":"OLMYSAR 40MG FILM TABLET 122,080 kg","batch":"122,080","A":"117,600","limits":{"Tablet Baskı Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,5","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"99,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"94,0","max":"100,0"}}},{"code":"13001487","name":"OLMYSAR  10MG-20-40MG FKTB(OBULK)","batch":"117,600","A":"117,600","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,0"}}},{"code":"13001488","name":"OLMYSAR PLUS 2025MG FILM TB","batch":"91,560","A":"88,200","limits":{"Tablet Baskı Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"}}},{"code":"13001492","name":"OLMYSAR PLUS 2012.5MG FILM TB","batch":"122,080","A":"117,600","limits":{"İmalat Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"98,5","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,0"}}},{"code":"13001559","name":"LEODEX 25MG FILM KAPLI TAB","batch":"195,000","A":"187,500","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"93,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"93,0","max":"100,0"}}},{"code":"13001588","name":"COMBISAR 5160MG FKT(FILMKAPLI)","batch":"100,940","A":"98,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13001589","name":"COMBISAR 10160MG FKT(FILMKAPLI)","batch":"100,940","A":"98,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"}}},{"code":"13001646","name":"ZESPIRA 4MG PED.ORAL.GRN.ICR SASE (BULK)","batch":"300,000","A":"300,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"}}},{"code":"13001655","name":"APIREKS COLD & FLU 200MG30MG FKTB(BULK)","batch":"380,000","A":"370,000","limits":{"İmalat Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"99,5","max":"100,5"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"101,0"}}},{"code":"13001799","name":"ZESPIRA PLUS 5MG10MG FKT (TABLET)","batch":"432,900","A":"421,200","limits":{"İmalat Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,0"}}},{"code":"13001820","name":"LEVOKAST 5MG10MG FILM TAB.","batch":"222,000","A":"216,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"93,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"93,0","max":"100,0"}}},{"code":"13001880","name":"RANEKS 20MG ENTERIK TABLET (ENT.TB)","batch":"229,334","A":"200,000","limits":{"İmalat Verimi":{"type":"Verim","min":"98,5","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,5","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,5","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"101,0"}}},{"code":"13001923","name":"MUSCOFLEX DUO 758MG-DIKLOFENAK KISMI","batch":"233,640","A":"247,658","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"}}},{"code":"13001924","name":"MUSCOFLEX DUO 758MG-TIYOKOLSIKOSD KISMI","batch":"198,880","A":"198,880","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"}}},{"code":"13001925","name":"MUSCOFLEX DUO 758MG DEGS.SLNM.TABLET","batch":"440,000","A":"440,000","limits":{"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"94,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"94,0","max":"100,0"}}},{"code":"13001935","name":"TIODIK 600MG FILM KAPLI TABLET","batch":"181,200","A":"178,950","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,0"}}},{"code":"13001936","name":"SALMIDEN 500MG ENTERIK KAPLI TABLET","batch":"577,500","A":"510,000","limits":{"İmalat Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,0"}}},{"code":"13001937","name":"RUPATEK 10MG TABLET (BULK)","batch":"180,000","A":"180,000","limits":{"İmalat Verimi":{"type":"Verim","min":"95,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,0"}}},{"code":"13001953","name":"LEODEX PLUS 254MG FKTB","batch":"193,500","A":"187,500","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"96,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"94,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"94,0","max":"100,0"}}},{"code":"13001954","name":"LEODEX PLUS 25MG8MG FKT","batch":"193,500","A":"187,500","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"96,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"94,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"94,0","max":"100,0"}}},{"code":"13001955","name":"ATEROZ 40MG FILM TB (film kaplı)-BASKILI","batch":"186,000","A":"180,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,5","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"101,0"}}},{"code":"13002009","name":"CLOPIDOGREL 75 MG. FILM TABLET (F.Kaplı)","batch":"105,840","A":"102,902","limits":{"İmalat Verimi":{"type":"Verim","min":"99,7","max":"100,3"},"Tablet Baskı Verimi":{"type":"Verim","min":"99,7","max":"100,3"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Kaplama sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"99,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"}}},{"code":"13002014","name":"VILDEGA 50MG TABLET (BULK)","batch":"224,000","A":"224,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,0"}}},{"code":"13002017","name":"VILDEGA PLUS 501000MG FILM KAP.TB. BULK","batch":"543,600","A":"532,800","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,5","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"93,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"93,0","max":"100,0"}}},{"code":"13002018","name":"VILDEGA PLUS 50850MG FILM KAP.TB. BULK","batch":"495,720","A":"486,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,5","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"93,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"93,0","max":"100,0"}}},{"code":"13002024","name":"ERDOBIL 300MG SERT KAPSUL-BULK","batch":"603,000","A":"487,500","limits":{"İmalat Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Kapsül Dolum Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Kapsül Dolum Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,0"}}},{"code":"13002027","name":"OSELMIR 75MG SERT KAPSUL-BULK","batch":"91,600","A":"66,000","limits":{"İmalat Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Kapsül Dolum Verimi":{"type":"Verim","min":"96,0","max":"100,0"},"Kapsül Dolum Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"94,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"94,0","max":"100,0"}}},{"code":"13002028","name":"OSELMIR 12 MG/ML ORAL SUSP.HZR.TOZ-BULK","batch":"520,000","A":"520,000","limits":{"İmalat Verimi":{"type":"Verim","min":"95,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"100,5"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,5"}}},{"code":"13002037","name":"CASFLEX 400MG FILM KAPLI TABLET(BULK)","batch":"525,000","A":"510,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,5","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"93,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"93,0","max":"100,0"}}},{"code":"13002051","name":"VENTOFOR COMBI FIX 320MCG9MCG KPS-BULK","batch":"25,000","A":"25,000","limits":{"Kapsül Dolum Verimi":{"type":"Verim","min":"95,0","max":"100,0"},"Kapsül Dolum Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"93,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"93,0","max":"100,0"}}},{"code":"13002070","name":"DISAVER 50MG FILM KAPLI TABLET (BULK)","batch":"264,000","A":"255,000","limits":{"İmalat Verimi":{"type":"Verim","min":"98,5","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,5","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,5","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"101,0"}}},{"code":"13002091","name":"LINAZEP 5 MG 30 FILM KAPLI TABLET BULK","batch":"392,000","A":"567,000","limits":{"İmalat Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,0"}}},{"code":"13002110","name":"LINAZEP PLUS 2,5MG1000MG F.K.T.BULK","batch":"583,800","A":"567,000","limits":{"İmalat Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,0"}}},{"code":"13002116","name":"GLIFOR 1000MG FILM TABLET (FILM KAPLI)","batch":"619,763","A":"608,948","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,5","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"100,5"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,5"}}},{"code":"13002116","name":"GLIFOR 1000MG FILM TABLET (FILM KAPLI)","batch":"826,350","A":"608,948","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,5","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"100,5"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,5"}}},{"code":"23000197","name":"JANUVIA 100MG FILM KAPLI TABLET","batch":"524,286","A":"504,126","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,5","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,5","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,5","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"101,0"}}},{"code":"23000203","name":"JANUMET 50MG500MG FILM KAPLI TABLET","batch":"516,000","A":"503,020","limits":{"İmalat Verimi":{"type":"Verim","min":"98,0","max":"102,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,0"}}},{"code":"23000204","name":"JANUMET 50MG850MG FILM KAPLI TABLET","batch":"516,000","A":"503,300","limits":{"İmalat Verimi":{"type":"Verim","min":"98,0","max":"102,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,0"}}},{"code":"23000205","name":"JANUMET 50MG1000MG FILM KAP TABLET","batch":"516,000","A":"503,200","limits":{"İmalat Verimi":{"type":"Verim","min":"98,0","max":"102,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"95,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"92,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"92,0","max":"100,0"}}},{"code":"23000251","name":"XALFU XL 10MG  UZAT.SAL.TAB.-ECZACIBASI","batch":"213,246","A":"207,000","limits":{"İmalat Verimi":{"type":"Verim","min":"96,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"96,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"96,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"}}},{"code":"23000252","name":"GRANEXA 1MG FILM KAPLI TAB. (BULK)-ECZ.","batch":"72,100","A":"70,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"96,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"93,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"100,0"}}},{"code":"23000253","name":"GRANEXA 2MG FILM KAPLI TAB. (BULK)-ECZ.","batch":"82,400","A":"80,000","limits":{"İmalat Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"98,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"93,0","max":"100,0"}}},{"code":"23000254","name":"KEPPRA 250MG FILM TABLET (BULK)","batch":"525,944","A":"510,625","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"101,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"101,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"98,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"101,0"}}},{"code":"23000255","name":"KEPPRA 500MG FILM TABLET (BULK)","batch":"525,944","A":"510,625","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"101,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"101,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"98,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"101,0"}}},{"code":"23000256","name":"KEPPRA 1000MG FILM TABLET (BULK)","batch":"525,944","A":"510,625","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"101,0"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"101,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"101,0"}}},{"code":"23000257","name":"TARDYFERON 80MG UZATILM. SALMLI KAP.TB.","batch":"430,675","A":"402,500","limits":{"İmalat Verimi":{"type":"Verim","min":"97,5","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"96,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,0","max":"100,5"},"Kaplama sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"93,5","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"93,5","max":"101,0"}}},{"code":"23000258","name":"GYNOTARDYFERON UZT.SAL.KAPLI.TB-CEKIRDEK","batch":"402,500","A":"402,500","limits":{"İmalat Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"}}},{"code":"23000264","name":"GYNOTARDYFERON UZT.SAL.KAPLI.TB(KAPLAMA)","batch":"430,675","A":"0,000","limits":{"Kaplama Verimi":{"type":"Verim","min":"99,0","max":"100,5"},"Kaplama sayılabilirlik":{"type":"Sayılabilirlik","min":"99,0","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"101,0"}}},{"code":"23000281","name":"BENVIDA 50MG FILM KAPLI TABLET (BULK)","batch":"128,960","A":"124,000","limits":{"İmalat Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Kaplama sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"}}},{"code":"23000282","name":"BENVIDA 100MG FILM KAPLI TABLET (BULK)","batch":"257,920","A":"248,000","limits":{"İmalat Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Kaplama sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"}}},{"code":"23000283","name":"BENVIDA 200MG FILM KAPLI TABLET (BULK)","batch":"257,920","A":"248,000","limits":{"İmalat Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Kaplama sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"}}},{"code":"23000284","name":"BENVIDA 150MG FILM KAPLI TABLET (BULK)","batch":"257,920","A":"248,000","limits":{"İmalat Verimi":{"type":"Verim","min":"98,0","max":"100,0"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Kaplama sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"97,0","max":"100,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,0"}}},{"code":"13000309","name":"CORONİS 6.25 MG. TABLET(tablet)","batch":"168,000","A":"168,000","limits":{"İmalat Verimi":{"type":"Verim","min":"99,0","max":"101,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"96,5","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,5","max":"100,0"},"Solid İmalat Genel Verim":{"type":"Verim","min":"96,0","max":"100,5"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"96,0","max":"100,5"}}},{"code":"13001880","name":"RANEKS 20MG ENTERIK TABLET (ENT.TB)","batch":"458,667","A":"400,000","limits":{"İmalat Verimi":{"type":"Verim","min":"98,5","max":"100,5"},"Tablet Baskı Verimi":{"type":"Verim","min":"97,0","max":"100,0"},"Tablet Baskı Sayılabilirlik":{"type":"Sayılabilirlik","min":"97,0","max":"100,0"},"Kaplama Verimi":{"type":"Verim","min":"98,5","max":"100,5"},"Kaplama Sayılabilirlik":{"type":"Sayılabilirlik","min":"98,5","max":"100,5"},"Solid İmalat Genel Verim":{"type":"Verim","min":"95,0","max":"101,0"},"Solid İmalat Sayılabilirlik":{"type":"Sayılabilirlik","min":"95,0","max":"101,0"}}}];
+    const metricAliases = {
+        "İmalat Verimi": ["İmalat Verimi"],
+        "Tablet Baskı Verimi": ["Tablet Baskı Verimi"],
+        "Tablet Baskı Sayılabilirlik": ["Tablet Baskı Sayılabilirlik"],
+        "Kaplama Verimi": ["Kaplama Verimi"],
+        "Kaplama Sayılabilirlik": ["Kaplama Sayılabilirlik", "Kaplama sayılabilirlik"],
+        "Solid İmalat Genel Verim": ["Solid İmalat Genel Verim"],
+        "Solid İmalat Sayılabilirlik": ["Solid İmalat Sayılabilirlik", "Solid İmalat sayılabilirlik"]
+    };
+    const resultMetricMap = {"res_manufacturing_yield": "İmalat Verimi", "res_tablet_press_yield": "Tablet Baskı Verimi", "res_tablet_press_accountability": "Tablet Baskı Sayılabilirlik", "res_coating_yield": "Kaplama Verimi", "res_coating_accountability": "Kaplama Sayılabilirlik", "res_overall_solid_manufacturing_yield": "Solid İmalat Genel Verim", "res_overall_solid_manufacturing_accountability": "Solid İmalat Sayılabilirlik"};
+    const productSearch = document.getElementById('productSearch');
+    const productResults = document.getElementById('productResults');
+    const productInfo = document.getElementById('productInfo');
+    let selectedProductIndex = null;
+
+    function parseTrNumber(value) {
+        if (typeof value === 'number') return value;
+        if (value === null || value === undefined || value === '') return 0;
+        return Number(String(value).trim().replace(/\./g, '').replace(',', '.')) || 0;
+    }
+
+    function formatTr(value, digits = 3) {
+        return Number(value).toLocaleString('tr-TR', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+    }
+
+    function productLabel(p) {
+        return `${p.code} — ${p.name} | Şarj: ${p.batch} kg | A: ${p.A} kg`;
+    }
+
+    productData.sort((a, b) => a.code.localeCompare(b.code, 'tr') || parseTrNumber(a.batch) - parseTrNumber(b.batch) || a.name.localeCompare(b.name, 'tr'));
+
+    function renderProductResults() {
+        const query = productSearch.value.trim().toLocaleLowerCase('tr-TR');
+        productResults.replaceChildren();
+        if (!query) {
+            const empty = document.createElement('div');
+            empty.className = 'product-empty';
+            empty.textContent = 'Ürün kodunu yazarak aramaya başlayın.';
+            productResults.appendChild(empty);
+            return;
+        }
+        // Yalnızca ürün kodunda arama yap; örneğin 432 tüm kod eşleşmelerini listeler.
+        const matches = productData.map((p, index) => ({ p, index }))
+            .filter(({p}) => p.code.includes(query));
+        if (!matches.length) {
+            const empty = document.createElement('div');
+            empty.className = 'product-empty';
+            empty.textContent = 'Eşleşen ürün bulunamadı.';
+            productResults.appendChild(empty);
+            return;
+        }
+        const count = document.createElement('div');
+        count.className = 'product-note';
+        count.textContent = `${matches.length} ürün/şarj seçeneği bulundu. Doğru satırı seçin:`;
+        productResults.appendChild(count);
+        matches.forEach(({p, index}) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'product-result' + (selectedProductIndex === index ? ' selected' : '');
+            button.setAttribute('role', 'option');
+            button.setAttribute('aria-selected', selectedProductIndex === index ? 'true' : 'false');
+            const code = document.createElement('strong');
+            code.textContent = p.code;
+            button.appendChild(code);
+            button.setAttribute('aria-label', `Ürün kodu ${p.code}, şarj ${p.batch} kg`);
+            button.addEventListener('click', () => selectProduct(index));
+            productResults.appendChild(button);
+        });
+    }
+
+    function selectProduct(index) {
+        const p = productData[index];
+        if (!p) return;
+        selectedProductIndex = index;
+        document.getElementById('A').value = parseTrNumber(p.A);
+        document.getElementById('G').value = parseTrNumber(p.batch);
+        // Ürün değişince yalnızca A ve G bilinen verilerden doldurulur; diğer alanlar sıfırlanır.
+        ['B','C','D','x','y','z','t','w','p','q','n1','n2','n3'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+        productSearch.value = p.code;
+        productInfo.textContent = `Seçilen ürün kodu: ${p.code} | G: ${p.batch} kg | A: ${p.A} kg. Tanımlı limitli parametre: ${Object.keys(p.limits || {}).length}. Diğer girişleri manuel doldurun.`;
+        renderProductResults();
+        calculate();
+    }
+
+    productSearch.addEventListener('input', () => {
+        // Yeni bir arama mevcut ürün seçimini geçersiz kılar; A/G alanları da eski ürün gibi görünmesin.
+        selectedProductIndex = null;
+        document.getElementById('A').value = '';
+        document.getElementById('G').value = '';
+        productInfo.textContent = 'Arama sonuçlarından doğru ürün/şarj seçeneğini seçin. Seçim yapıldığında yalnızca A ve G doldurulur.';
+        renderProductResults();
+        calculate();
+    });
+    renderProductResults();
+
+    // Tema düğmesi: koyu tema ile açık tema arasında geçiş yapar.
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+        const dark = document.body.dataset.theme !== 'dark';
+        document.body.dataset.theme = dark ? 'dark' : 'light';
+        themeToggle.textContent = dark ? '☀️ Açık Tema' : '🌙 Koyu Tema';
+    });
+
+    function getLimit(product, metric) {
+        if (!product) return null;
+        const aliases = metricAliases[metric] || [metric];
+        for (const alias of aliases) {
+            if (product.limits && product.limits[alias]) return product.limits[alias];
+        }
+        return null;
+    }
+
+    function updateLimit(resultId, metric, value, product) {
+        const el = document.getElementById('limit_' + resultId);
+        if (!el) return;
+        const lim = getLimit(product, metric);
+        el.className = 'result-meta';
+        if (!product) {
+            el.textContent = 'Ürün seçilmedi';
+            el.classList.add('no-limit');
+            return;
+        }
+        if (!lim) {
+            el.textContent = 'Bu parametre için limit tanımlı değil';
+            el.classList.add('no-limit');
+            return;
+        }
+        const min = parseTrNumber(lim.min), max = parseTrNumber(lim.max);
+        const inside = value >= min && value <= max;
+        el.textContent = `Limit: ${lim.min} – ${lim.max} % | ${inside ? 'LİMİT İÇİNDE' : 'LİMİT DIŞINDA'}`;
+        el.classList.add(inside ? 'in-range' : 'out-range');
+    }
+
+    function calculate() {
+        const v = {};
+        const inputs = ['A', 'G', 'B', 'C', 'D', 'x', 'y', 'z', 't', 'w', 'p', 'q', 'n1', 'n2', 'n3'];
+        inputs.forEach(id => {
+            v[id] = parseFloat(document.getElementById(id).value) || 0;
+        });
+
+        // Girişlerden biri boşsa eksik veriyle yanıltıcı %0 sonuçları gösterme.
+        const incomplete = inputs.some(id => document.getElementById(id).value.trim() === '');
+        if (incomplete) {
+            const resultIds = [
+                'res_manufacturing_yield', 'res_tablet_press_yield', 'res_tablet_press_accountability',
+                'res_total_core_tablets', 'res_coating_yield', 'res_coating_accountability',
+                'res_total_coated_tablets', 'res_overall_solid_manufacturing_yield',
+                'res_overall_solid_manufacturing_accountability'
+            ];
+            resultIds.forEach(id => { document.getElementById(id).innerText = '-'; });
+            Object.keys(resultMetricMap).forEach(id => {
+                const el = document.getElementById('limit_' + id);
+                if (el) { el.className = 'result-meta no-limit'; el.textContent = 'Girişler tamamlandığında kontrol edilir'; }
+            });
+            return;
+        }
+
+        // Hesaplamalar mevcut XML formülleriyle korunmuştur.
+        const manufacturing_yield = v.A !== 0 ? ((v.B + v.n1) / v.A) * 100 : 0;
+        const tablet_press_yield = v.B !== 0 ? ((v.C + v.y + v.n2) / v.B) * 100 : 0;
+        const tablet_press_accountability = v.B !== 0 ? ((v.C + v.x + v.y + v.z + v.n2) / v.B) * 100 : 0;
+        const total_core_tablets = v.p !== 0 ? (v.C / v.p) * 1000000 : 0;
+        const coating_yield = (v.C !== 0 && v.q !== 0) ? ((v.D + v.w + v.n3) / v.C) * (v.p / v.q) * 100 : 0;
+        const coating_accountability = (v.C !== 0 && v.q !== 0) ? ((v.D + v.t + v.w + v.n3) / v.C) * (v.p / v.q) * 100 : 0;
+        const total_coated_tablets = v.q !== 0 ? (v.D / v.q) * 1000000 : 0;
+        const overall_solid_manufacturing_yield = v.G !== 0 ? ((v.D + v.y + v.w + v.n1 + v.n2 + v.n3) / v.G) * 100 : 0;
+        const overall_solid_manufacturing_accountability = v.G !== 0 ? ((v.D + v.x + v.y + v.z + v.t + v.w + v.n1 + v.n2 + v.n3) / v.G) * 100 : 0;
+
+        document.getElementById('res_manufacturing_yield').innerText = manufacturing_yield.toFixed(1) + ' %';
+        document.getElementById('res_tablet_press_yield').innerText = tablet_press_yield.toFixed(1) + ' %';
+        document.getElementById('res_tablet_press_accountability').innerText = tablet_press_accountability.toFixed(1) + ' %';
+        document.getElementById('res_total_core_tablets').innerText = Math.round(total_core_tablets).toLocaleString('tr-TR') + ' adet';
+        document.getElementById('res_coating_yield').innerText = coating_yield.toFixed(1) + ' %';
+        document.getElementById('res_coating_accountability').innerText = coating_accountability.toFixed(1) + ' %';
+        document.getElementById('res_total_coated_tablets').innerText = Math.round(total_coated_tablets).toLocaleString('tr-TR') + ' adet';
+        document.getElementById('res_overall_solid_manufacturing_yield').innerText = overall_solid_manufacturing_yield.toFixed(1) + ' %';
+        document.getElementById('res_overall_solid_manufacturing_accountability').innerText = overall_solid_manufacturing_accountability.toFixed(1) + ' %';
+
+        const selectedProduct = selectedProductIndex === null ? null : productData[selectedProductIndex];
+        const resultValues = {
+            res_manufacturing_yield: manufacturing_yield,
+            res_tablet_press_yield: tablet_press_yield,
+            res_tablet_press_accountability: tablet_press_accountability,
+            res_coating_yield: coating_yield,
+            res_coating_accountability: coating_accountability,
+            res_overall_solid_manufacturing_yield: overall_solid_manufacturing_yield,
+            res_overall_solid_manufacturing_accountability: overall_solid_manufacturing_accountability
+        };
+        Object.entries(resultMetricMap).forEach(([id, metric]) => updateLimit(id, metric, resultValues[id], selectedProduct));
+    }
+
+    document.getElementById('yieldForm').addEventListener('input', calculate);
+    window.addEventListener('DOMContentLoaded', calculate);
+    calculate();
+</script>
+
+</body>
+</html>
