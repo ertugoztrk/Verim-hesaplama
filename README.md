@@ -1,0 +1,1 @@
+# Verim-hesaplama
